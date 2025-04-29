@@ -67,8 +67,8 @@ def toggle_and_save(state):
         print("Light mode enabled - saved as dark_mode_demo_light.png")
 
 # Start in light mode
-plt.savefig('dark_mode_demo_light.png')
-print("Initial light mode - saved as dark_mode_demo_light.png")
+plt.savefig('dark_mode_demo_light_initial.png')
+print("Initial light mode - saved as dark_mode_demo_light_initial.png")
 
 # Toggle to dark mode
 toggle_and_save(True)
