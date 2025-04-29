@@ -99,7 +99,7 @@ The repository includes several example scripts:
 1. `test_standalone_dark_mode.py`: Basic examples of using the function
 2. `comprehensive_dark_mode_example.py`: More complex examples with various plot types
 3. `dark_mode_toggle_demo.py`: Demonstrates toggling between dark and light modes
-4. `test_integrated_toggle.py`: Tests the integrated toggle functionality
+4. `test_plt_toggle.py`: Tests the toggle functionality using the plt interface
 
 ## Example Images
 
@@ -115,6 +115,26 @@ The repository includes several example images showing the function in action:
 
 ## Installation
 
+### Standalone Module (Recommended)
+
 To use the standalone module, simply copy the `matplotlib_dark_mode.py` file to your project directory and import it as shown in the examples above.
 
-To use the integrated version, you would need to replace the `pyplot.py` file in your Matplotlib installation with the modified version provided in this repository. However, this is not recommended for production use as it modifies the core Matplotlib library.
+### Integrated Version
+
+To use the integrated version, you would need to install the modified Matplotlib source code:
+
+1. Navigate to the `Phase 1/matplotlib-main` directory
+2. Run `pip install -e .` to install the development version of Matplotlib with our modifications
+
+**Note:** This is not recommended for production use as it modifies the core Matplotlib library. The standalone module provides the same functionality without modifying the core library.
+
+### Alternative Approach
+
+For a simpler approach that doesn't require modifying or reinstalling Matplotlib, you can use the standalone module but import it at the beginning of your script:
+
+```python
+import matplotlib.pyplot as plt
+import matplotlib_dark_mode  # This adds toggle_dark_mode to plt
+```
+
+This will add the `toggle_dark_mode` function to the `plt` namespace, making it behave like the integrated version.
