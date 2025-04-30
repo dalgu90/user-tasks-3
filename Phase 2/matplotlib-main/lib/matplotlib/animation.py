@@ -20,6 +20,8 @@ from matplotlib._animation_data import (
     DISPLAY_TEMPLATE, INCLUDED_FRAMES, JS_INCLUDE, STYLE_INCLUDE)
 from matplotlib import _api, cbook
 import matplotlib.colors as mcolors
+from matplotlib.collections import PathCollection
+from matplotlib.container import BarContainer
 
 _log = logging.getLogger(__name__)
 
@@ -1818,3 +1820,71 @@ def _validate_grabframe_kwargs(savefig_kwargs):
             raise TypeError(
                 f"grab_frame got an unexpected keyword argument {k!r}"
             )
+
+
+def smooth_transition(from_data, to_data, duration=1.0, fps=30, **kwargs):
+    """
+    Smoothly transitions between two data states with optional easing.
+
+    Parameters:
+    - from_data: Initial data state (e.g., y-values for line plots).
+    - to_data: Final data state.
+    - duration: Duration of the transition in seconds (default: 1.0).
+    - fps: Frames per second (default: 30).
+
+    Returns:
+    - ani: Matplotlib FuncAnimation object.
+    """
+    import numpy as np
+    from matplotlib.animation import FuncAnimation
+    import matplotlib.pyplot as plt
+
+    frames = int(duration * fps)
+    easing_functions = {
+        'linear': lambda t: t,
+        'ease-in': lambda t: t**2,
+        'ease-out': lambda t: 1 - (1 - t)**2,
+        'ease-in-out': lambda t: t**2 if t < 0.5 else 1 - (1 - t)**2,
+    }
+    easing = kwargs.get('easing', 'linear')
+    ease = easing_functions.get(easing, easing_functions['linear'])
+
+    def interpolate(t):
+        return from_data + (to_data - from_data) * ease(t)
+
+    def update(frame):
+        t = frame / frames
+        current_data = interpolate(t)
+
+        # Get the current figure and axes if not provided
+        fig = kwargs.get('fig', plt.gcf())
+        ax = kwargs.get('ax', plt.gca())
+
+        # Determine plot type from axes children
+        for child in ax.get_children():
+            if isinstance(child, plt.Line2D):
+                child.set_ydata(current_data)
+            elif isinstance(child, PathCollection):
+                child.set_offsets(np.c_[kwargs.get('x', range(len(current_data))), current_data])
+            elif isinstance(child, BarContainer):
+                # Update the height of each bar in the BarContainer
+                for rect, height in zip(child.patches, current_data):
+                    rect.set_height(height)
+
+        return []
+
+    fig = kwargs.get('fig', plt.gcf())
+    ani = FuncAnimation(fig, update, frames=frames, interval=1000 / fps, blit=True)
+    return ani
+
+
+def transition_plot_state(fig_from, fig_to, duration=1.0, fps=30):
+    """
+    Transitions between two figure states.
+    """
+    # Extract data from fig_from and fig_to
+    from_data = extract_plot_data(fig_from)
+    to_data = extract_plot_data(fig_to)
+
+    # Use smooth_transition to animate the transition
+    return smooth_transition(from_data, to_data, duration=duration, fps=fps, fig=fig_from)
